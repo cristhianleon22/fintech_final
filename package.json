@@ -16,7 +16,7 @@
       "onFail": "download"
     }
   },
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
     "@types/node": "^26.6.5",
     "eslint": "^10.13.0",
