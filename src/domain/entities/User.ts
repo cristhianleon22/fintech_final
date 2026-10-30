@@ -1,66 +1,78 @@
 import { InvalidPropValueError } from "../exceptions/DomainError";
 
 export interface UserProps {
-    id: string;
+    id?: string;
     email: string;
     password: string;
     fullName: string;
-    createdAt: Date;
-};
+    createdAt?: Date;
+}
 
 export class User {
     private readonly props: UserProps;
 
-    constructor(props: UserProps) {
+    // Constructor privado: fuerza el uso del Factory Method 'create'
+    private constructor(props: UserProps) {
         this.props = props;
     }
 
     public static create(props: UserProps): User {
+        // Invariante: Formato de correo electrónico válido
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
         if (!emailRegex.test(props.email)) {
-            throw new InvalidPropValueError(`El email ${props.email} no es válido`);
+            throw new InvalidPropValueError(`El email [${props.email}] no es válido.`);
         }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;// valida que la contraseña tenga al menos una mayuscula, una minuscula, un numero y un caracter especial
 
+        // Invariante: Fortaleza mínima de contraseña (al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
         if (!passwordRegex.test(props.password)) {
-            throw new InvalidPropValueError(`El password ${props.password} no es válido`);
-        }
-        const fullNameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s']+$/; // valida que solo sean letras y espacios
-        if (!fullNameRegex.test(props.fullName)) {
-            throw new InvalidPropValueError(`El nombre ${props.fullName} no es válido`);
-        }
-        const createdAtRegex = /^\d{4}-\d{2}-\d{2}$/; // formato de fecha yyyy-mm-dd
-        if (!createdAtRegex.test(props.createdAt.toISOString())) {
-            throw new InvalidPropValueError(`La fecha de creación ${props.createdAt} no es válida`);
+            throw new InvalidPropValueError("La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.");
         }
 
-        return new User(props);
+        // Invariante: Nombre completo debe contener caracteres alfabéticos válidos
+        const fullNameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s']+$/;
+        if (!fullNameRegex.test(props.fullName.trim()) || props.fullName.trim().length < 3) {
+            throw new InvalidPropValueError(`El nombre [${props.fullName}] no es válido (mínimo 3 caracteres alfabéticos).`);
+        }
+
+        // Invariante: Fecha de creación válida
+        const createdAt = props.createdAt ?? new Date();
+        if (!(createdAt instanceof Date) || isNaN(createdAt.getTime())) {
+            throw new InvalidPropValueError("La fecha de creación no es válida.");
+        }
+
+        return new User({
+            ...props,
+            fullName: props.fullName.trim(),
+            createdAt
+        });
     }
-    //getters
 
-    public getId(): string {
-        return this.props.id;
+    // --- GETTERS ESTANDARIZADOS (TS Idiomático) ---
+    get id(): string {
+        return this.props.id ?? '';
     }
 
-    public getEmail(): string {
+    get email(): string {
         return this.props.email;
     }
 
-    public getPassword(): string {
+    get password(): string {
         return this.props.password;
     }
 
-    public getFullName(): string {
+    get fullName(): string {
         return this.props.fullName;
     }
 
-    public getCreatedAt(): Date {
-        return this.props.createdAt;
+    get createdAt(): Date {
+        return this.props.createdAt ?? new Date();
     }
 
-
-
-
-
+    // Métodos accesorios para máxima compatibilidad
+    public getId(): string { return this.id; }
+    public getEmail(): string { return this.email; }
+    public getPassword(): string { return this.password; }
+    public getFullName(): string { return this.fullName; }
+    public getCreatedAt(): Date { return this.createdAt; }
 }

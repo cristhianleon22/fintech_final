@@ -1,4 +1,4 @@
-import { DomainError } from './DomainError.js';
+import { DomainError } from './DomainError';
 
 export class InsufficientBalanceError extends DomainError {
     constructor(accountId: string) {
