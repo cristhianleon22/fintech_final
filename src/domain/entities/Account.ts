@@ -66,7 +66,7 @@ export class Account {
         return this.props.status === 'FROZEN';
     }
 
-    // --- COMPORTAMIENTOS DEL DOMINIO (MODELO RICO) ---
+    // --- COMPORTAMIENTOS DEL DOMINIO ---
 
     public deposit(amount: Decimal): void {
         if (amount.lte(0)) {
@@ -98,10 +98,16 @@ export class Account {
     }
 
     public freeze(): void {
+        if (this.props.status === "FROZEN") {
+            throw new InvalidPropValueError("La cuenta ya se encuentra congelada.");
+        }
         this.props.status = 'FROZEN';
     }
 
     public unfreeze(): void {
+        if (this.props.status === "ACTIVE") {
+            throw new InvalidPropValueError("La cuenta ya se encuentra activa.");
+        }
         this.props.status = 'ACTIVE';
     }
 }

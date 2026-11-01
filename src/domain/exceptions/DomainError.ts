@@ -16,3 +16,9 @@ export abstract class DomainError extends Error {
  * Clase que se usará para la validación de los campos al momento de crear una instancia.
  */
 export class InvalidPropValueError extends DomainError { }
+
+export class UserInactiveError extends DomainError {
+    constructor(userId: string) {
+        super(`Operación denegada: El usuario [${userId}] se encuentra inactivo.`);
+    }
+}

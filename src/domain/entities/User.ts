@@ -1,15 +1,18 @@
 import { InvalidPropValueError } from "../exceptions/DomainError";
 
+export type UserStatus = 'ACTIVE' | 'INACTIVE';
+
 export interface UserProps {
     id?: string;
     email: string;
     password: string;
     fullName: string;
+    status?: UserStatus;
     createdAt?: Date;
 }
 
 export class User {
-    private readonly props: UserProps;
+    private props: UserProps;
 
     // Constructor privado: fuerza el uso del Factory Method 'create'
     private constructor(props: UserProps) {
@@ -35,6 +38,12 @@ export class User {
             throw new InvalidPropValueError(`El nombre [${props.fullName}] no es válido (mínimo 3 caracteres alfabéticos).`);
         }
 
+        // Invariante: Estado del usuario válido
+        const status = props.status ?? 'ACTIVE';
+        if (status !== 'ACTIVE' && status !== 'INACTIVE') {
+            throw new InvalidPropValueError(`El estado [${status}] no es válido (debe ser 'ACTIVE' o 'INACTIVE').`);
+        }
+
         // Invariante: Fecha de creación válida
         const createdAt = props.createdAt ?? new Date();
         if (!(createdAt instanceof Date) || isNaN(createdAt.getTime())) {
@@ -44,6 +53,7 @@ export class User {
         return new User({
             ...props,
             fullName: props.fullName.trim(),
+            status,
             createdAt
         });
     }
@@ -65,6 +75,10 @@ export class User {
         return this.props.fullName;
     }
 
+    get status(): UserStatus {
+        return this.props.status ?? 'ACTIVE';
+    }
+
     get createdAt(): Date {
         return this.props.createdAt ?? new Date();
     }
@@ -74,5 +88,30 @@ export class User {
     public getEmail(): string { return this.email; }
     public getPassword(): string { return this.password; }
     public getFullName(): string { return this.fullName; }
+    public getStatus(): UserStatus { return this.status; }
     public getCreatedAt(): Date { return this.createdAt; }
+
+    // --- MÉTODOS DE CONSULTA DE ESTADO ---
+    public isActive(): boolean {
+        return this.props.status === 'ACTIVE';
+    }
+
+    public isInactive(): boolean {
+        return this.props.status === 'INACTIVE';
+    }
+
+    // --- COMPORTAMIENTOS DEL DOMINIO ---
+    public activate(): void {
+        if (this.isActive()) {
+            throw new InvalidPropValueError("El usuario ya se encuentra activo.");
+        }
+        this.props.status = 'ACTIVE';
+    }
+
+    public deactivate(): void {
+        if (this.isInactive()) {
+            throw new InvalidPropValueError("El usuario ya se encuentra inactivo.");
+        }
+        this.props.status = 'INACTIVE';
+    }
 }
