@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums para mantener integridad de dominio en la DB
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AccountStatus {
+  ACTIVE
+  FROZEN
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique
+  passwordHash String
+  fullName     String
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  accounts Account[]
+}
+
+model Account {
+  id            String        @id @default(uuid()) @db.Uuid
+  accountNumber String        @unique
+  balance       Decimal       @default(0.00) @db.Decimal(19, 4) // Prevención de errores de flotante
+  status        AccountStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userId        String        @db.Uuid
+
+  // Relación con el usuario propietario
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  // Relaciones inversas hacia las transacciones
+  sentTransactions     Transaction[] @relation("SourceAccount")
+  receivedTransactions Transaction[] @relation("DestinationAccount")
+}
+
+// -------------------------------------------------------------------
+// Implementación de Single Table Inheritance (STI)
+// -------------------------------------------------------------------
+model Transaction {
+  id          String            @id @default(uuid()) @db.Uuid
+  amount      Decimal           @db.Decimal(19, 4)
+  type        TransactionType // <-- Columna Discriminadora clave para STI
+  status      TransactionStatus @default(PENDING)
+  description String?
+  createdAt   DateTime          @default(now())
+
+  // Campos específicos de Withdrawal / Transfer (Deben ser opcionales en DB)
+  sourceAccountId String?  @db.Uuid
+  sourceAccount   Account? @relation("SourceAccount", fields: [sourceAccountId], references: [id])
+
+  // Campos específicos de Deposit / Transfer (Deben ser opcionales en DB)
+  destinationAccountId String?  @db.Uuid
+  destinationAccount   Account? @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+}
