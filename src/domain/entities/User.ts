@@ -58,6 +58,19 @@ export class User {
         });
     }
 
+    /**
+     * Reconstruye una entidad User desde la capa de persistencia (Base de Datos).
+     * Omite validaciones de negocio exclusivas de nuevos registros (como la fortaleza de la contraseña en texto plano).
+     */
+    public static reconstitute(props: UserProps): User {
+        return new User({
+            ...props,
+            fullName: props.fullName.trim(),
+            status: props.status ?? 'ACTIVE',
+            createdAt: props.createdAt ?? new Date()
+        });
+    }
+
     // --- GETTERS ESTANDARIZADOS (TS Idiomático) ---
     get id(): string {
         return this.props.id ?? '';
