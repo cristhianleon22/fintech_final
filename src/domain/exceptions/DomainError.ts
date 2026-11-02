@@ -22,3 +22,15 @@ export class UserInactiveError extends DomainError {
         super(`Operación denegada: El usuario [${userId}] se encuentra inactivo.`);
     }
 }
+
+export class UserAlreadyExistsError extends DomainError {
+    constructor(email: string) {
+        super(`El usuario con el email [${email}] ya se encuentra registrado.`);
+    }
+}
+
+export class InvalidCredentialsError extends DomainError {
+    constructor() {
+        super("Credenciales inválidas: correo electrónico o contraseña incorrectos.");
+    }
+}
