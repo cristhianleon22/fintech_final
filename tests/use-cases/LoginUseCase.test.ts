@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { LoginUseCase } from "../../src/use-cases/LoginUseCase";
 import { MockUserRepository } from "../mocks/MockUserRepository";
-import { CryptoPasswordHasher } from "../../src/infrestructure/services/CryptoPasswordHasher";
+import { CryptoPasswordHasher } from "../../src/infrastructure/services/CryptoPasswordHasher";
 import { User } from "../../src/domain/entities/User";
 import { InvalidCredentialsError, UserInactiveError } from "../../src/domain/exceptions/DomainError";
 

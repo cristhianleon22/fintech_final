@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { RegisterUserUseCase } from "../../src/use-cases/RegisterUserUseCase";
 import { MockUserRepository } from "../mocks/MockUserRepository";
-import { CryptoPasswordHasher } from "../../src/infrestructure/services/CryptoPasswordHasher";
+import { CryptoPasswordHasher } from "../../src/infrastructure/services/CryptoPasswordHasher";
 import { UserAlreadyExistsError, InvalidPropValueError } from "../../src/domain/exceptions/DomainError";
 
 describe("RegisterUserUseCase", () => {

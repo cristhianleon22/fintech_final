@@ -1,13 +1,27 @@
 import { UserRepository } from "../domain/repositories/UserRepository";
 import { PasswordHasher } from "../domain/services/PasswordHasher";
+import { JwtTokenService } from "../infrastructure/services/JwtTokenService";
 import { InvalidCredentialsError, UserInactiveError } from "../domain/exceptions/DomainError";
 import { LoginInputDTO, LoginOutputDTO } from "./dto/UserDTOs";
 
 export class LoginUseCase {
+    private readonly userRepository: UserRepository;
+    private readonly tokenService?: JwtTokenService;
+    private readonly passwordHasher: PasswordHasher;
+
     constructor(
-        private readonly userRepository: UserRepository,
-        private readonly passwordHasher: PasswordHasher
-    ) { }
+        userRepository: UserRepository,
+        tokenServiceOrHasher: JwtTokenService | PasswordHasher,
+        passwordHasher?: PasswordHasher
+    ) {
+        this.userRepository = userRepository;
+        if (passwordHasher) {
+            this.tokenService = tokenServiceOrHasher as JwtTokenService;
+            this.passwordHasher = passwordHasher;
+        } else {
+            this.passwordHasher = tokenServiceOrHasher as PasswordHasher;
+        }
+    }
 
     async execute(input: LoginInputDTO): Promise<LoginOutputDTO> {
         const normalizedEmail = input.email.trim().toLowerCase();
@@ -29,12 +43,17 @@ export class LoginUseCase {
             throw new UserInactiveError(user.id);
         }
 
+        // 4. Generar token de sesión si el servicio de token está provisto
+        const token = this.tokenService
+            ? this.tokenService.generateToken({ userId: user.id, email: user.email })
+            : undefined;
+
         return {
             id: user.id,
             email: user.email,
             fullName: user.fullName,
             status: user.status,
+            token,
         };
     }
 }
-

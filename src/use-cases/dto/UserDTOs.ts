@@ -22,5 +22,6 @@ export interface LoginOutputDTO {
     email: string;
     fullName: string;
     status: string;
+    token?: string;
 }
 
