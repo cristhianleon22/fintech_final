@@ -60,9 +60,26 @@ export class TransactionController {
             const accountId = req.params.accountId as string;
             const history = await this.getTransactionHistoryUseCase.execute(accountId);
 
+            const mappedHistory = history.map((tx) => {
+                const anyTx = tx as any;
+                return {
+                    id: tx.id,
+                    type: tx.type,
+                    amount: typeof tx.amount?.toNumber === 'function' ? tx.amount.toNumber() : Number(tx.amount),
+                    status: tx.status,
+                    description: tx.description,
+                    createdAt: tx.createdAt,
+                    sourceAccountId: anyTx.sourceAccountId ?? anyTx.sourceAccount ?? null,
+                    destinationAccountId: anyTx.destinationAccountId ?? anyTx.destinationAccount ?? null,
+                };
+            });
+
             res.status(200).json({
                 status: 'success',
-                data: history,
+                data: {
+                    accountId,
+                    transactions: mappedHistory,
+                },
             });
         } catch (error) {
             next(error);

@@ -4,6 +4,7 @@ export const TransferMoneySchema = z.object({
     sourceAccountId: z.string().uuid('El ID de cuenta de origen debe ser un UUID válido.'),
     destinationAccountId: z.string().uuid('El ID de cuenta de destino debe ser un UUID válido.'),
     amount: z.number().positive('El monto a transferir debe ser estrictamente mayor a cero.'),
+    description: z.string().max(100, 'La descripción no puede exceder 100 caracteres.').optional(),
 });
 
 export const DepositSchema = z.object({

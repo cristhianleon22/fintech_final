@@ -1,5 +1,7 @@
 import { Decimal } from "decimal.js";
 import { AccountRepository } from "../domain/repositories/AccountRepository";
+import { TransactionRepository } from "../domain/repositories/TransactionRepository";
+import { Withdrawal } from "../domain/entities/Transaction";
 import {
     AccountNotFoundError,
     AccountFrozenError,
@@ -9,7 +11,10 @@ import {
 import { WithdrawalInputDTO, WithdrawalOutputDTO } from "./dto/WithdrawalDTOs";
 
 export class WithdrawalUseCase {
-    constructor(private readonly accountRepository: AccountRepository) { }
+    constructor(
+        private readonly accountRepository: AccountRepository,
+        private readonly transactionRepository?: TransactionRepository
+    ) { }
 
     async execute(input: WithdrawalInputDTO): Promise<WithdrawalOutputDTO> {
         const { accountId, amount } = input;
@@ -43,6 +48,19 @@ export class WithdrawalUseCase {
         // Persistir el cambio de saldo
         await this.accountRepository.update(account);
 
+        // Registrar la transacción de retiro en el repositorio si está disponible
+        if (this.transactionRepository) {
+            const withdrawalTx = Withdrawal.create({
+                id: crypto.randomUUID(),
+                amount: withdrawalAmount,
+                status: "COMPLETED",
+                sourceAccountId: account.id,
+                description: `Retiro realizado de la cuenta ${account.accountNumber}.`,
+                createdAt: new Date(),
+            });
+            await this.transactionRepository.save(withdrawalTx);
+        }
+
         return {
             accountId: account.id,
             accountNumber: account.accountNumber,
@@ -51,4 +69,3 @@ export class WithdrawalUseCase {
         };
     }
 }
-

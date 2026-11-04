@@ -62,8 +62,8 @@ export function createApp(): Application {
     const freezeAccountUseCase = new FreezeAccountUseCase(accountRepository);
     const unfreezeAccountUseCase = new UnfreezeAccountUseCase(accountRepository);
     const transferMoneyUseCase = new TransferMoneyUseCase(accountRepository);
-    const depositUseCase = new DepositUseCase(accountRepository);
-    const withdrawalUseCase = new WithdrawalUseCase(accountRepository);
+    const depositUseCase = new DepositUseCase(accountRepository, transactionRepository);
+    const withdrawalUseCase = new WithdrawalUseCase(accountRepository, transactionRepository);
     const getTransactionHistoryUseCase = new GetTransactionHistoryUseCase(transactionRepository);
 
     // 5. Instanciación de Controladores y Guardias HTTP (Capa de Presentación)
@@ -99,6 +99,7 @@ export function createApp(): Application {
     app.post('/api/transactions/transfer', authMiddleware.handle, validateRequest(TransferMoneySchema), transactionController.transfer);
     app.post('/api/transactions/deposit', authMiddleware.handle, validateRequest(DepositSchema), transactionController.deposit);
     app.post('/api/transactions/withdraw', authMiddleware.handle, validateRequest(WithdrawalSchema), transactionController.withdraw);
+    app.post('/api/transactions/withdrawal', authMiddleware.handle, validateRequest(WithdrawalSchema), transactionController.withdraw);
     app.get('/api/transactions/history/:accountId', authMiddleware.handle, transactionController.getHistory);
 
     // 7. Middleware Global de Manejo de Errores (Obligatoriamente al final)
